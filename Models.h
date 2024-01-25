@@ -34,6 +34,8 @@ public:
     const std::vector<Card>& getHand() const;
     const std::string getName() const;
     void removeFromHand(const Card& card);
+    void sortHand();
+    int declaration();
 
 private:
     std::string name;
@@ -49,6 +51,7 @@ public:
 
 private:
     void dealCards();
+    void sortHands();
     void chooseTrump();
     void declarations();
     void playGame();
@@ -56,6 +59,8 @@ private:
     Deck deck;
     std::vector<Player> players;
     int firstPlayer;
+    int points[2];
+    int trumpTeam;
     Suit trump;
 };
 

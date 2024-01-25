@@ -1,123 +1,147 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <map>
+#include <random>
+#include "Models.h"
 
-enum Suit { SPADES, HEARTS, DIAMONDS, CLUBS };
-
-class Card {
-public:
-    Card(int value, Suit suit) : value(value), suit(suit) {}
-
-    int getValue() const { return value; }
-    Suit getSuit() const { return suit; }
-
-private:
-    int value;
-    Suit suit;
+static const std::map<std::string, Suit> suitMap = {
+    {"SPADES", SPADES},
+    {"HEARTS", HEARTS},
+    {"DIAMONDS", DIAMONDS},
+    {"CLUBS", CLUBS}
 };
 
-class Deck {
-public:
-    Deck() {
-        for (int i = 7; i <= 14; ++i) {
-            cards.push_back(Card(i, SPADES));
-            cards.push_back(Card(i, HEARTS));
-            cards.push_back(Card(i, DIAMONDS));
-            cards.push_back(Card(i, CLUBS));
+Card::Card(int value, Suit suit) : value(value), suit(suit) {}
+
+int Card::getValue() const { return value; }
+
+Suit Card::getSuit() const { return suit; }
+
+Deck::Deck() {
+    shuffle();
+    for (int i = 7; i <= 14; ++i) {
+        cards.push_back(Card(i, SPADES));
+        cards.push_back(Card(i, HEARTS));
+        cards.push_back(Card(i, DIAMONDS));
+        cards.push_back(Card(i, CLUBS));
+    }
+}
+
+void Deck::shuffle() {
+    std::random_device rd;  // Use hardware entropy to generate a random seed
+    std::mt19937 gen(rd()); // Standard Mersenne Twister engine
+    std::shuffle(cards.begin(), cards.end(), gen);
+}
+
+Card Deck::drawCard() {
+    Card drawnCard = cards.back();
+    cards.pop_back();
+    return drawnCard;
+}
+
+Player::Player(const std::string& name) : name(name) {}
+
+void Player::addToHand(const Card& card) {
+    hand.push_back(card);
+}
+
+const std::vector<Card>& Player::getHand() const {
+    return hand;
+}
+
+const std::string Player::getName() const {
+    return name;
+}
+
+void Player::removeFromHand(const Card& card) {
+    std::vector<Card>::iterator it = std::find(hand.begin(), hand.end(), card);
+    if(it != hand.end()) {
+        hand.erase(it);
+    }
+}
+
+void Player::sortHand() {
+    std::sort(hand.begin(), hand.end(), [](const Card& a, const Card& b) {
+        if (a.getSuit() < b.getSuit()) {
+            return true;
+        } else if (a.getSuit() > b.getSuit()) {
+            return false;
+        }
+
+        return a.getValue() < b.getValue();
+    });
+}
+
+int Player::declaration() {
+
+}
+
+BelaGame::BelaGame(const std::string& player1, const std::string& player2, const std::string& player3, const std::string& player4, const int firstPlayer)
+    :  deck(), players{Player(player1), Player(player2), Player(player3), Player(player4)}, firstPlayer(firstPlayer), points{0, 0} {}
+
+const Player& BelaGame::getPlayer(int index) const {
+    return players[index];
+}
+
+const std::vector<Player>& BelaGame::getAllPlayers() const {
+    return players;
+}
+
+void BelaGame::startGame() {
+    dealCards();
+    sortHands();
+    chooseTrump();
+    declarations();
+    playGame();
+}
+
+void BelaGame::dealCards() {
+    for (int i = 0; i < 8; i++) {
+        for(int j = 0; j < 4; j++) {
+            players[i].addToHand(deck.drawCard());
         }
     }
+}
 
-    void shuffle() {
-        std::random_shuffle(cards.begin(), cards.end());
+void BelaGame::sortHands() {
+    for(int i = 0; i < 4; i++) {
+        players[i].sortHand();
     }
+}
 
-    Card drawCard() {
-        Card drawnCard = cards.back();
-        cards.pop_back();
-        return drawnCard;
-    }
+void BelaGame::chooseTrump() {
+    std::string inputTrump;
+    std::vector<std::string> validInput = {"PASS", "SPADES", "HEARTS", "DIAMONDS", "CLUBS"};
 
-private:
-    std::vector<Card> cards;
-};
+    for(int i = 0 ; i < 4; i++) {
+        std::cout << "Player " << players[(firstPlayer+i)%4].getName() << " is choosing trump" << std::endl;
 
-class Player {
-public:
-    Player(const std::string& name) : name(name) {}
-
-    void addToHand(const Card& card) {
-        hand.push_back(card);
-    }
-
-    const std::vector<Card>& getHand() const {
-        return hand;
-    }
-
-    const std::string getName() const {
-        return name;
-    }
-
-    void removeFromHand(const Card& card) {
-        std::vector<Card>::iterator it = std::find(hand.begin(), hand.end(), card);
-        if(it != hand.end()) {
-            hand.erase(it);
+        while(true) {
+            if(i != 3) std::cout << "Choose: PASS, SPADES, HEARTS, DIAMONDS, CLUBS" << std::endl;
+            else {
+                validInput.erase(std::remove(validInput.begin(), validInput.end(), "PASS"), validInput.end());
+                std::cout << "Choose: SPADES, HEARTS, DIAMONDS, CLUBS" << std::endl;
+            }
+            std::cin >> inputTrump;
+            if(std::find(validInput.begin(), validInput.end(), inputTrump) == validInput.end()) {
+                std::cout << "Not a valid input, try again";
+                continue;
+            }
+            if(inputTrump == "PASS") break;
+            else {
+                trump = suitMap.at(inputTrump);
+                trumpTeam = i % 2;
+                return;
+            }
         }
     }
+}
 
-    int calculatePoints() const {
-        int points = 0;
-        for (const auto& card : hand) {
-            points += card.getValue();
-        }
-        return points;
-    }
+void BelaGame::declarations() {
 
-private:
-    std::string name;
-    std::vector<Card> hand;
-};
+}
 
-class BelaGame {
-public:
-    BelaGame(const std::string& player1, const std::string& player2)
-        : player1(player1), player2(player2) {}
-
-    void startGame() {
-        deck.shuffle();
-        dealCards();
-        playGame();
-        displayWinner();
-    }
-
-private:
-    void dealCards() {
-        for (int i = 0; i < 8; ++i) {
-            player1.addToHand(deck.drawCard());
-            player2.addToHand(deck.drawCard());
-        }
-    }
-
-    void playGame() {
-    }
-
-    void displayWinner() {
-        int points1 = player1.calculatePoints();
-        int points2 = player2.calculatePoints();
-
-        std::cout << "Game Over\n";
-        std::cout << player1.getName() << " points: " << points1 << "\n";
-        std::cout << player2.getName() << " points: " << points2 << "\n";
-
-        if (points1 > points2)
-            std::cout << player1.getName() << " wins!\n";
-        else if (points2 > points1)
-            std::cout << player2.getName() << " wins!\n";
-        else
-            std::cout << "It's a tie!\n";
-    }
-
-private:
-    Deck deck;
-    Player player1;
-    Player player2;
-};
+void BelaGame::playGame() {
+    
+}

@@ -1,18 +1,24 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <map>
 #include "Models.h"
 
 using namespace std;
+
+const int trumpOrder[] = {7, 8, 12, 13, 10, 14, 9, 11};
+const int normalOrder[] = {7, 8, 9, 11, 12, 13, 10, 14};
+const map<int, int> cardValue = {
+    {7, 0}, {8, 0}, {9, 0}, {11, 2}, {12, 3}, {13, 4}, {10, 10}, {14, 11}
+};
+const map<int, int> cardTrumpValue = {
+    {7, 0}, {8, 0}, {12, 3}, {13, 4}, {10, 10}, {14, 11}, {9, 14}, {11, 20}
+};
 
 //returns true if card1 is stronger than card2
 bool compareCards(const Card& card1, const Card& card2, Suit trump) {
     if(card1.getSuit() == trump && card2.getSuit() != trump) return true;
     if(card1.getSuit() != card2.getSuit()) return false;
 
-    const int trumpOrder[] = {7, 8, 12, 13, 10, 14, 9, 11};
-    const int normalOrder[] = {7, 8, 9, 11, 12, 13, 10, 14};
     int index1,index2;
 
     for (int i = 0; i < 8; i++) {
@@ -57,6 +63,17 @@ const vector<Card>& validCardsToPlay(const vector<Card>& playerHand, Card firstC
         if(validStrongerCards.size() != 0) return validStrongerCards;
         return validCards;
     }
-    
+
     return playerHand;
+}
+
+int countCardPoints(const vector<Card>& cards, Suit trump) {
+    int countPoints = 0;
+    
+    for(const auto& card : cards) {
+        if(card.getSuit() != trump) countPoints += cardValue.at(card.getValue());
+        else countPoints += cardTrumpValue.at(card.getValue());
+    }
+
+    return countPoints;
 }
