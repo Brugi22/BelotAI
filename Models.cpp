@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <map>
 #include <random>
+#include <set>
 #include "Models.h"
 
 static const std::map<std::string, Suit> suitMap = {
@@ -10,6 +11,15 @@ static const std::map<std::string, Suit> suitMap = {
     {"HEARTS", HEARTS},
     {"DIAMONDS", DIAMONDS},
     {"CLUBS", CLUBS}
+};
+
+static const std::map<int, int> valueDeclaration = {
+    {9, 150},
+    {10, 100},
+    {11, 200},
+    {12, 100},
+    {13, 100},
+    {14, 100}
 };
 
 Card::Card(int value, Suit suit) : value(value), suit(suit) {}
@@ -139,7 +149,33 @@ void BelaGame::chooseTrump() {
 }
 
 void BelaGame::declarations() {
+    for(int i = 0; i < 4; i++) {
+        std::cout << "Player " << players[(firstPlayer + i) % 4].getName() << " is declaring" << std::endl;
 
+        //4 same cards
+
+        const std::vector<Card>& hand = players[(firstPlayer + i) % 4].getHand();
+
+        auto isCardWithValue = [&hand](int value) {
+            return std::any_of(hand.begin(), hand.end(), [value](const Card& c) { return c.getValue() == value; });
+        };
+
+        std::vector<int> valuesToCheck = { 9, 10, 11, 12, 13, 14 };
+        std::set<Card> jokers;
+
+        for (int value : valuesToCheck) {
+            if (isCardWithValue(value)) {
+                std::copy_if(hand.begin(), hand.end(), std::inserter(jokers, jokers.end()), [value](const Card& c) { return c.getValue() == value; });
+            }
+            if (jokers.size() == 4) {
+                players[(firstPlayer + i) % 4].declarationValue = valueDeclaration.at(value);
+            }
+            jokers.clear();
+        }
+
+        //cards in a row
+
+    }
 }
 
 void BelaGame::playGame() {

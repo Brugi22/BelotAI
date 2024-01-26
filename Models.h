@@ -36,6 +36,7 @@ public:
     void removeFromHand(const Card& card);
     void sortHand();
     int declaration();
+    int declarationValue;
 
 private:
     std::string name;
