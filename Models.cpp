@@ -3,8 +3,9 @@
 #include <algorithm>
 #include <map>
 #include <random>
-#include <set>
+#include <utility>
 #include "Models.h"
+#include "GameRules.cpp"
 
 static const std::map<std::string, Suit> suitMap = {
     {"SPADES", SPADES},
@@ -14,6 +15,9 @@ static const std::map<std::string, Suit> suitMap = {
 };
 
 static const std::map<int, int> valueDeclaration = {
+    {3, 20},
+    {4, 50},
+    {5, 100},
     {9, 150},
     {10, 100},
     {11, 200},
@@ -39,8 +43,8 @@ Deck::Deck() {
 }
 
 void Deck::shuffle() {
-    std::random_device rd;  // Use hardware entropy to generate a random seed
-    std::mt19937 gen(rd()); // Standard Mersenne Twister engine
+    std::random_device rd;  
+    std::mt19937 gen(rd());
     std::shuffle(cards.begin(), cards.end(), gen);
 }
 
@@ -50,7 +54,7 @@ Card Deck::drawCard() {
     return drawnCard;
 }
 
-Player::Player(const std::string& name) : name(name) {}
+Player::Player(const std::string& name) : name(name), declarationValue(0) {}
 
 void Player::addToHand(const Card& card) {
     hand.push_back(card);
@@ -60,8 +64,21 @@ const std::vector<Card>& Player::getHand() const {
     return hand;
 }
 
+const std::vector<std::vector<Card>>& Player::getDeclaration() const {
+    return declaration;
+}
+
+const int Player::getDeclarationValue() const {
+    return declarationValue;
+}
+
 const std::string Player::getName() const {
     return name;
+}
+
+void Player::clearDeclarations() {
+    declaration.clear();
+    declarationValue = 0;
 }
 
 void Player::removeFromHand(const Card& card) {
@@ -83,8 +100,60 @@ void Player::sortHand() {
     });
 }
 
-int Player::declaration() {
+std::vector<Card> Player::getAllCardOfSuit(Suit suit) {
+    std::vector<Card> foundCards;
 
+    for(const auto& card : hand) {
+        if(card.getSuit() == suit) foundCards.push_back(card);
+    }
+
+    return foundCards;
+}
+
+void Player::findDeclarations() {
+    int iterationList[6] = {12, 13, 10, 14, 9, 11};
+    std::vector<Card> foundDeclaration;
+
+    for (const int& value : iterationList) {  
+        int count = std::count_if(hand.begin(), hand.end(), [value](const Card& card) { return card.getValue() == value; });
+
+        if (count == 4) {
+            foundDeclaration.clear();
+            for (int suit = SPADES; suit <= CLUBS; suit++) foundDeclaration.push_back(Card(value, static_cast<Suit>(suit)));
+            declaration.push_back(foundDeclaration);
+            declarationValue += valueDeclaration.at(value);
+        }
+    }
+
+    for (int suit = SPADES; suit <= CLUBS; suit++) {
+        std::vector<Card> sameSuitCards = getAllCardOfSuit(static_cast<Suit>(suit));
+        foundDeclaration.clear();
+
+        if(sameSuitCards.size() <= 2) continue;
+
+        for (int i = 0; i < sameSuitCards.size() - 1; i++) {
+            if (sameSuitCards[i].getValue() == sameSuitCards[i + 1].getValue() - 1) {
+                foundDeclaration.push_back(sameSuitCards[i]);
+            } else {
+                foundDeclaration.push_back(sameSuitCards[i]);
+
+                if(foundDeclaration.size() >= 3) {
+                    int score = (foundDeclaration.size() > 5) ? 5 : foundDeclaration.size();
+                    declaration.push_back(foundDeclaration);
+                    declarationValue += valueDeclaration.at(score);
+                }
+
+                foundDeclaration.clear();
+            }
+        }
+
+        foundDeclaration.push_back(sameSuitCards[sameSuitCards.size() - 1]);
+        if(foundDeclaration.size() >= 3) {
+            int score = (foundDeclaration.size() > 5) ? 5 : foundDeclaration.size();
+            declaration.push_back(foundDeclaration);
+            declarationValue += valueDeclaration.at(score);
+        }
+    }
 }
 
 BelaGame::BelaGame(const std::string& player1, const std::string& player2, const std::string& player3, const std::string& player4, const int firstPlayer)
@@ -109,7 +178,7 @@ void BelaGame::startGame() {
 void BelaGame::dealCards() {
     for (int i = 0; i < 8; i++) {
         for(int j = 0; j < 4; j++) {
-            players[i].addToHand(deck.drawCard());
+            players[j].addToHand(deck.drawCard());
         }
     }
 }
@@ -148,33 +217,35 @@ void BelaGame::chooseTrump() {
     }
 }
 
-void BelaGame::declarations() {
-    for(int i = 0; i < 4; i++) {
-        std::cout << "Player " << players[(firstPlayer + i) % 4].getName() << " is declaring" << std::endl;
+void BelaGame::clearDeclarations(int playerIndex) {
+    players[playerIndex].clearDeclarations();
+}
 
-        //4 same cards
-
-        const std::vector<Card>& hand = players[(firstPlayer + i) % 4].getHand();
-
-        auto isCardWithValue = [&hand](int value) {
-            return std::any_of(hand.begin(), hand.end(), [value](const Card& c) { return c.getValue() == value; });
-        };
-
-        std::vector<int> valuesToCheck = { 9, 10, 11, 12, 13, 14 };
-        std::set<Card> jokers;
-
-        for (int value : valuesToCheck) {
-            if (isCardWithValue(value)) {
-                std::copy_if(hand.begin(), hand.end(), std::inserter(jokers, jokers.end()), [value](const Card& c) { return c.getValue() == value; });
-            }
-            if (jokers.size() == 4) {
-                players[(firstPlayer + i) % 4].declarationValue = valueDeclaration.at(value);
-            }
-            jokers.clear();
+void BelaGame::processDeclarations(int currentPlayer, bool& found4Same, bool& foundDeclaration,
+                            std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer) {
+    for (const auto& declaration : players[currentPlayer].getDeclaration()) {
+        if (declaration[0].getSuit() == declaration[1].getSuit()) {
+            processSameSuitDeclaration(declaration, found4Same, foundDeclaration, strongestDeclaration, strongestIndexPlayer, currentPlayer);
+        } else {
+            processDifferentSuitDeclaration(declaration, found4Same, foundDeclaration, strongestDeclaration, strongestIndexPlayer, currentPlayer);
         }
+    }
+}
 
-        //cards in a row
+void BelaGame::declarations() {
+    int strongestIndexPlayer;
+    std::pair<int, int> strongestDeclaration = {0, 0};
+    bool found4Same = false;
+    bool foundDeclaration = false;
 
+    for (int i = 0; i < 4; i++) {
+        int currentPlayer = (firstPlayer + i) % 4;
+        processDeclarations(currentPlayer, found4Same, foundDeclaration, strongestDeclaration, strongestIndexPlayer);
+    }
+
+    if (foundDeclaration) {
+        clearDeclarations((strongestIndexPlayer + 1) % 4);
+        clearDeclarations((strongestIndexPlayer + 3) % 4);
     }
 }
 

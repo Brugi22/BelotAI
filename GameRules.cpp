@@ -77,3 +77,33 @@ int countCardPoints(const vector<Card>& cards, Suit trump) {
 
     return countPoints;
 }
+
+void processSameSuitDeclaration(const std::vector<Card>& declaration, bool& found4Same, bool& foundDeclaration,
+                                    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer, int currentPlayer) {
+    if (!found4Same) {
+        found4Same = true;
+        foundDeclaration = true;
+        strongestDeclaration = { declaration[0].getValue(), declaration[0].getValue() };
+        strongestIndexPlayer = currentPlayer;
+    } else if (strongestDeclaration.first < declaration[0].getValue()) {
+        strongestDeclaration = { declaration[0].getValue(), declaration[0].getValue() };
+        strongestIndexPlayer = currentPlayer;
+    }
+}
+
+void processDifferentSuitDeclaration(const std::vector<Card>& declaration, bool& found4Same, bool& foundDeclaration,
+                                    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer, int currentPlayer) {
+    int score = std::min(5, static_cast<int>(declaration.size()));
+    if (!foundDeclaration) {
+        foundDeclaration = true;
+        strongestDeclaration = { score, declaration.back().getValue() };
+        strongestIndexPlayer = currentPlayer;
+    } else {
+        if (!found4Same && (strongestDeclaration.first < declaration.size() ||
+            (strongestDeclaration.first == declaration.size() &&
+                strongestDeclaration.second < declaration.back().getValue()))) {
+            strongestDeclaration = { score, declaration.back().getValue() };
+            strongestIndexPlayer = currentPlayer;
+        }
+    }
+}
