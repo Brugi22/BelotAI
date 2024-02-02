@@ -12,6 +12,8 @@ public:
     int getValue() const;
     Suit getSuit() const;
 
+    bool operator==(const Card& other) const {return value == other.value && suit == other.suit;}
+
 private:
     int value;
     Suit suit;

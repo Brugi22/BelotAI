@@ -2,15 +2,14 @@
 #include <vector>
 #include <map>
 #include "Models.h"
-
-using namespace std;
+#include "GameRules.h"
 
 const int trumpOrder[] = {7, 8, 12, 13, 10, 14, 9, 11};
 const int normalOrder[] = {7, 8, 9, 11, 12, 13, 10, 14};
-const map<int, int> cardValue = {
+const std::map<int, int> cardValue = {
     {7, 0}, {8, 0}, {9, 0}, {11, 2}, {12, 3}, {13, 4}, {10, 10}, {14, 11}
 };
-const map<int, int> cardTrumpValue = {
+const std::map<int, int> cardTrumpValue = {
     {7, 0}, {8, 0}, {12, 3}, {13, 4}, {10, 10}, {14, 11}, {9, 14}, {11, 20}
 };
 
@@ -33,17 +32,17 @@ bool compareCards(const Card& card1, const Card& card2, Suit trump) {
     return index1 > index2;
 }
 
-const vector<Card>& validCardsToPlay(const vector<Card>& playerHand, Card firstCard = Card(0, SPADES), Card strongestCard = Card(0, SPADES), Suit trump = SPADES) {
+std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card firstCard = Card(0, SPADES), Card strongestCard = Card(0, SPADES), Suit trump = SPADES) {
     if(firstCard.getValue() == 0) return playerHand;
 
-    vector<Card> validCards;
+    std::vector<Card> validCards;
+    std::vector<Card> validStrongerCards;
 
     for(const auto& card : playerHand) {
         if(card.getSuit() == firstCard.getSuit()) validCards.push_back(card);
     }
 
     if(validCards.size() != 0) {
-        vector<Card> validStrongerCards;
         
         for(const auto& card : validCards) if(compareCards(card,strongestCard,trump)) validStrongerCards.push_back(card);
 
@@ -56,7 +55,6 @@ const vector<Card>& validCardsToPlay(const vector<Card>& playerHand, Card firstC
     }
 
     if(validCards.size() != 0) {
-        vector<Card> validStrongerCards;
         
         for(const auto& card : validCards) if(compareCards(card,strongestCard,trump)) validStrongerCards.push_back(card);
 
@@ -67,7 +65,7 @@ const vector<Card>& validCardsToPlay(const vector<Card>& playerHand, Card firstC
     return playerHand;
 }
 
-int countCardPoints(const vector<Card>& cards, Suit trump) {
+int countCardPoints(const std::vector<Card>& cards, Suit trump) {
     int countPoints = 0;
     
     for(const auto& card : cards) {

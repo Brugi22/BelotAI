@@ -5,7 +5,7 @@
 #include <random>
 #include <utility>
 #include "Models.h"
-#include "GameRules.cpp"
+#include "GameRules.h"
 
 static const std::map<std::string, Suit> suitMap = {
     {"SPADES", SPADES},
@@ -82,8 +82,9 @@ void Player::clearDeclarations() {
 }
 
 void Player::removeFromHand(const Card& card) {
-    std::vector<Card>::iterator it = std::find(hand.begin(), hand.end(), card);
-    if(it != hand.end()) {
+    auto it = find(hand.begin(), hand.end(), card);
+ 
+    if (it != hand.end()) {
         hand.erase(it);
     }
 }
