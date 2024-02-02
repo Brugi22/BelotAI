@@ -24,6 +24,7 @@ public:
     Deck();
     void shuffle();
     Card drawCard();
+    
 private:
     std::vector<Card> cards;
 };

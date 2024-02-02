@@ -33,17 +33,17 @@ int Card::getValue() const { return value; }
 Suit Card::getSuit() const { return suit; }
 
 Deck::Deck() {
-    shuffle();
     for (int i = 7; i <= 14; ++i) {
         cards.push_back(Card(i, SPADES));
         cards.push_back(Card(i, HEARTS));
         cards.push_back(Card(i, DIAMONDS));
         cards.push_back(Card(i, CLUBS));
     }
+    shuffle();
 }
 
 void Deck::shuffle() {
-    std::random_device rd;  
+    std::random_device rd;
     std::mt19937 gen(rd());
     std::shuffle(cards.begin(), cards.end(), gen);
 }
@@ -148,7 +148,7 @@ void Player::findDeclarations() {
             }
         }
 
-        foundDeclaration.push_back(sameSuitCards[sameSuitCards.size() - 1]);
+        foundDeclaration.push_back(sameSuitCards.back());
         if(foundDeclaration.size() >= 3) {
             int score = (foundDeclaration.size() > 5) ? 5 : foundDeclaration.size();
             declaration.push_back(foundDeclaration);
@@ -200,12 +200,12 @@ void BelaGame::chooseTrump() {
         while(true) {
             if(i != 3) std::cout << "Choose: PASS, SPADES, HEARTS, DIAMONDS, CLUBS" << std::endl;
             else {
-                validInput.erase(std::remove(validInput.begin(), validInput.end(), "PASS"), validInput.end());
+                validInput.erase(validInput.begin());
                 std::cout << "Choose: SPADES, HEARTS, DIAMONDS, CLUBS" << std::endl;
             }
             std::cin >> inputTrump;
             if(std::find(validInput.begin(), validInput.end(), inputTrump) == validInput.end()) {
-                std::cout << "Not a valid input, try again";
+                std::cout << "Not a valid input, try again" << std::endl;
                 continue;
             }
             if(inputTrump == "PASS") break;
@@ -238,6 +238,8 @@ void BelaGame::declarations() {
     std::pair<int, int> strongestDeclaration = {0, 0};
     bool found4Same = false;
     bool foundDeclaration = false;
+
+    for(int i = 0; i < 4; i++) players[i].findDeclarations();
 
     for (int i = 0; i < 4; i++) {
         int currentPlayer = (firstPlayer + i) % 4;
