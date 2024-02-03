@@ -15,6 +15,7 @@ const std::map<int, int> cardTrumpValue = {
 
 //returns true if card1 is stronger than card2
 bool compareCards(const Card& card1, const Card& card2, Suit trump) {
+    if (card2.getValue() == 0) return true;   // base case, first card of the round
     if(card1.getSuit() == trump && card2.getSuit() != trump) return true;
     if(card1.getSuit() != card2.getSuit()) return false;
 

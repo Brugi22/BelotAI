@@ -67,9 +67,9 @@ private:
     void playGame();
 
     Deck deck;
-    std::vector<Player> players;
+    std::vector<Player> players;    
     int firstPlayer;
-    int points[2];
+    int points[2];                  // 0 and 2 (index 0)    vs     1 and 3 (index 1)
     int trumpTeam;
     Suit trump;
 };
