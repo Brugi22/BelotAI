@@ -3,8 +3,47 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 enum Suit { SPADES, HEARTS, DIAMONDS, CLUBS };
+
+static const std::map<std::string, Suit> suitMap = {
+    {"SPADES", SPADES},
+    {"HEARTS", HEARTS},
+    {"DIAMONDS", DIAMONDS},
+    {"CLUBS", CLUBS}
+};
+
+static const std::map<Suit, std::string> suitMapReverse = {
+    {SPADES, "SPADES"},
+    {HEARTS, "HEARTS"},
+    {DIAMONDS, "DIAMONDS"},
+    {CLUBS, "CLUBS"}
+};
+
+static const std::map<int, std::string> valueMapReverse = {
+    {0, "TEST"},
+    {7, "7"},
+    {8, "8"},
+    {9, "9"},
+    {10, "10"},
+    {11, "JACK"},
+    {12, "QUEEN"},
+    {13, "KING"},
+    {14, "ACE"}
+};
+
+static const std::map<int, int> valueDeclaration = {
+    {3, 20},
+    {4, 50},
+    {5, 100},
+    {9, 150},
+    {10, 100},
+    {11, 200},
+    {12, 100},
+    {13, 100},
+    {14, 100}
+};
 
 class Card {
 public:

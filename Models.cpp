@@ -1,49 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <map>
 #include <random>
 #include <utility>
 #include "Models.h"
 #include "GameRules.h"
-
-static const std::map<std::string, Suit> suitMap = {
-    {"SPADES", SPADES},
-    {"HEARTS", HEARTS},
-    {"DIAMONDS", DIAMONDS},
-    {"CLUBS", CLUBS}
-};
-
-static const std::map<Suit, std::string> suitMapReverse = {
-    {SPADES, "SPADES"},
-    {HEARTS, "HEARTS"},
-    {DIAMONDS, "DIAMONDS"},
-    {CLUBS, "CLUBS"}
-};
-
-static const std::map<int, std::string> valueMapReverse = {
-    {0, "TEST"},
-    {7, "7"},
-    {8, "8"},
-    {9, "9"},
-    {10, "10"},
-    {11, "JACK"},
-    {12, "QUEEN"},
-    {13, "KING"},
-    {14, "ACE"}
-};
-
-static const std::map<int, int> valueDeclaration = {
-    {3, 20},
-    {4, 50},
-    {5, 100},
-    {9, 150},
-    {10, 100},
-    {11, 200},
-    {12, 100},
-    {13, 100},
-    {14, 100}
-};
 
 Card::Card(int value, Suit suit) : value(value), suit(suit) {}
 
@@ -331,6 +292,9 @@ void BelaGame::playGame() {
         // Play the chosen card
         const Card& chosenCard = hand[chosenCardIndex];
         std::cout << "Player " << currentPlayer.getName() << " played: " << valueMapReverse.at(chosenCard.getValue()) << " of " << suitMapReverse.at(chosenCard.getSuit()) << std::endl;
+        // std::cout << "------ TEST added: ------ ";
+        // std::cout << valueMapReverse.at(chosenCard.getValue()) << " of " << suitMapReverse.at(chosenCard.getSuit()) << std::endl;
+        roundCards.push_back(chosenCard);
         if (currentPlayerIndex == firstPlayer) firstCard = chosenCard;
 
         // Is the card winning the round?
@@ -339,9 +303,8 @@ void BelaGame::playGame() {
             strongestPlayer = currentPlayerIndex;
         }
 
-        // Remove the played card from the player's hand and add it to the Round Cards
+        // Remove the played card from the player's hand
         players[currentPlayerIndex].removeFromHand(chosenCard);
-        roundCards.push_back(chosenCard);
 
         // Move to the next player
         currentPlayerIndex = (currentPlayerIndex + 1) % 4;
@@ -349,9 +312,12 @@ void BelaGame::playGame() {
         // End of the round
         if (currentPlayerIndex == firstPlayer) {
             // Add round points to team winning the round
+            // std::cout << "------ TEST end of the round ------\n";
+            // for(const Card& card : roundCards) std::cout << valueMapReverse.at(card.getValue()) << " of " << suitMapReverse.at(card.getSuit()) << std::endl;
             points[strongestPlayer % 2] += countCardPoints(roundCards, trump);
-            std::cout << "------ End round " << round + 1 << std::endl;
-            std::cout << "------ Points: " << points[0] << " " << points[1] << std::endl;
+            if (round == 7) points[strongestPlayer % 2] += 10;
+            std::cout << "---- End round " << round + 1 << std::endl;
+            std::cout << "---- Points: " << points[0] << " " << points[1] << std::endl;
 
             // First player is the strongest player of the round:
             firstPlayer = strongestPlayer;

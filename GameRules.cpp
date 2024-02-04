@@ -68,12 +68,17 @@ std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card fir
 
 int countCardPoints(const std::vector<Card>& cards, Suit trump) {
     int countPoints = 0;
-    
+    std::cout << "------ TEST count card points ------\n";
     for(const auto& card : cards) {
+        std::cout << valueMapReverse.at(card.getValue()) << " of " << suitMapReverse.at(card.getSuit()) << std::endl;
+        std::cout << "Adut? " << ((card.getSuit() != trump) ? "NE\n" : "DA\n");
+        std::cout << "Bodovi: " << ((card.getSuit() != trump) ?
+                    cardValue.at(card.getValue()) : cardTrumpValue.at(card.getValue()))
+                    << std::endl;
         if(card.getSuit() != trump) countPoints += cardValue.at(card.getValue());
         else countPoints += cardTrumpValue.at(card.getValue());
     }
-
+    std::cout << "------------\n";
     return countPoints;
 }
 
