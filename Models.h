@@ -76,11 +76,13 @@ public:
     const std::vector<std::vector<Card>>& getDeclaration() const;
     const int getDeclarationValue() const;
     const std::string getName() const;
-    void clearDeclarations();
-    void removeFromHand(const Card& card);
+    void removeFromHand(Card card);
     void sortHand();
     std::vector<Card> getAllCardOfSuit(Suit suit);
     void findDeclarations();
+    void clearDeclarations();
+    void displayDeclarations();
+    void checkBela(Suit trump);
 
 private:
     std::string name;
@@ -109,6 +111,7 @@ private:
     std::vector<Player> players;    
     int firstPlayer;
     int points[2];                  // 0 and 2 (index 0)    vs     1 and 3 (index 1)
+    int roundsWon[2];
     int trumpTeam;
     Suit trump;
 };

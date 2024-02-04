@@ -56,12 +56,7 @@ const std::string Player::getName() const {
     return name;
 }
 
-void Player::clearDeclarations() {
-    declaration.clear();
-    declarationValue = 0;
-}
-
-void Player::removeFromHand(const Card& card) {
+void Player::removeFromHand(Card card) {
     auto it = find(hand.begin(), hand.end(), card);
  
     if (it != hand.end()) {
@@ -137,8 +132,36 @@ void Player::findDeclarations() {
     }
 }
 
+void Player::displayDeclarations() {
+    if(declaration.size() > 0) {
+        std::cout << "Player " << name << " declared:" << std::endl;
+        for(auto i : declaration) {
+            for(auto j : i) {
+                std::cout << valueMapReverse.at(j.getValue()) << " of " << suitMapReverse.at(j.getSuit()) << "    ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << "Points: " << declarationValue << std::endl;
+    }
+}
+
+void Player::clearDeclarations() {
+    declaration.clear();
+    declarationValue = 0;
+}
+
+void Player::checkBela(Suit trump) {
+    std::vector<Card> trumpCards = getAllCardOfSuit(trump);
+    if(trumpCards.size() > 0 && std::find(trumpCards.begin(), trumpCards.end(), Card(12, trump)) != trumpCards.end() 
+                             && std::find(trumpCards.begin(), trumpCards.end(), Card(13, trump)) != trumpCards.end()) {
+        std::vector<Card> Bela = {Card(12, trump), Card(13, trump)};
+        declarationValue += 20;
+        declaration.push_back(Bela);
+    }
+}
+
 BelaGame::BelaGame(const std::string& player1, const std::string& player2, const std::string& player3, const std::string& player4, const int firstPlayer)
-    :  deck(), players{Player(player1), Player(player2), Player(player3), Player(player4)}, firstPlayer(firstPlayer), points{0, 0} {}
+    :  deck(), players{Player(player1), Player(player2), Player(player3), Player(player4)}, firstPlayer(firstPlayer), points{0, 0}, roundsWon{0, 0} {}
 
 const Player& BelaGame::getPlayer(int index) const {
     return players[index];
@@ -198,7 +221,7 @@ void BelaGame::chooseTrump() {
             if (inputTrump == "PASS") break;
             else {
                 trump = suitMap.at(inputTrump);
-                trumpTeam = i % 2;
+                trumpTeam = (firstPlayer + i) % 2;
                 return;
             }
         }
@@ -237,6 +260,13 @@ void BelaGame::declarations() {
         clearDeclarations((strongestIndexPlayer + 1) % 4);
         clearDeclarations((strongestIndexPlayer + 3) % 4);
     }
+
+    for(int i = 0; i < 4; i++) players[i].checkBela(trump);
+
+    for(int i = 0; i < 4; i++){
+        players[i].displayDeclarations();
+        points[i % 2] += players[i].getDeclarationValue();
+    }
 }
 
 void BelaGame::playGame() {
@@ -264,7 +294,7 @@ void BelaGame::playGame() {
         std::cout << std::endl;
 
         // Valid cards to play:
-        const std::vector<Card>& validHand = validCardsToPlay(hand, firstCard, strongestCard, trump);
+        std::vector<Card> validHand = validCardsToPlay(hand, firstCard, strongestCard, trump);
         // std::cout << "----- PRVA ----- " << valueMapReverse.at(firstCard.getValue()) << " of " << suitMapReverse.at(firstCard.getSuit());
         // std::cout << "\n----- NAJJACA ----- " << valueMapReverse.at(strongestCard.getValue()) << " of " << suitMapReverse.at(strongestCard.getSuit());
         // std::cout << "\n----- MGUCE IGRATI -----\n";
@@ -290,7 +320,7 @@ void BelaGame::playGame() {
         }
 
         // Play the chosen card
-        const Card& chosenCard = hand[chosenCardIndex];
+        Card chosenCard = hand[chosenCardIndex];
         std::cout << "Player " << currentPlayer.getName() << " played: " << valueMapReverse.at(chosenCard.getValue()) << " of " << suitMapReverse.at(chosenCard.getSuit()) << std::endl;
         // std::cout << "------ TEST added: ------ ";
         // std::cout << valueMapReverse.at(chosenCard.getValue()) << " of " << suitMapReverse.at(chosenCard.getSuit()) << std::endl;
@@ -315,6 +345,7 @@ void BelaGame::playGame() {
             // std::cout << "------ TEST end of the round ------\n";
             // for(const Card& card : roundCards) std::cout << valueMapReverse.at(card.getValue()) << " of " << suitMapReverse.at(card.getSuit()) << std::endl;
             points[strongestPlayer % 2] += countCardPoints(roundCards, trump);
+            roundsWon[strongestPlayer % 2]++;
             if (round == 7) points[strongestPlayer % 2] += 10;
             std::cout << "---- End round " << round + 1 << std::endl;
             std::cout << "---- Points: " << points[0] << " " << points[1] << std::endl;
@@ -324,8 +355,26 @@ void BelaGame::playGame() {
             currentPlayerIndex = firstPlayer;
 
             round++;
-            std::cout << "Round " << round + 1 << std::endl;
+            if(round < 8) std::cout << "Round " << round + 1 << std::endl;
         }
+    }
+
+    if(points[trumpTeam] < points[(trumpTeam + 1) % 2]) {
+        std::cout << "The team that called trump fell and lost all of the points" << std::endl;
+        points[(trumpTeam + 1) % 2] += points[trumpTeam % 2];
+        points[trumpTeam % 2] = 0;
+    }
+
+    if(roundsWon[0] == 8) {
+        std::cout << "Team 0 won all 8 rounds" << std::endl;
+        points[0] += points[1] + 90;
+        points[1] = 0;
+    }
+
+    if(roundsWon[1] == 8) {
+        std::cout << "Team 1 won all 8 rounds" << std::endl;
+        points[1] += points[0] + 90;
+        points[0] = 0;
     }
 
     // End of the game
