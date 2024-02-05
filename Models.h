@@ -72,20 +72,20 @@ class Player {
 public:
     Player(const std::string& name);
     void addToHand(const Card& card);
-    void addToInfo(int playerIndex, const Card card);
     const std::vector<Card>& getHand() const;
     const std::vector<std::vector<Card>>& getDeclaration() const;
     const int getDeclarationValue() const;
     const std::vector<std::vector<Card>>& getInfo() const;
-    void updateInfo(int playerIndex, const Card card);
     const std::string getName() const;
     void removeFromHand(Card card);
     void sortHand();
+    void updateInfo(int playerIndex, Card card);
     std::vector<Card> getAllCardOfSuit(Suit suit);
     void findDeclarations();
     void clearDeclarations();
     void displayDeclarations();
     void checkBela(Suit trump);
+    void initializeInfo();
 
 private:
     std::string name;
@@ -109,6 +109,8 @@ private:
     void declarations();
     void clearDeclarations(int playerIndex);
     void processDeclarations(int currentPlayer, bool& found4Same, bool& foundDeclaration, std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer);
+    void removePlayedCardsFromInfo(std::vector<Card> roundCards);
+    void initializeInfo();
     void playGame();
 
     Deck deck;
