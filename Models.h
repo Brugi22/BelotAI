@@ -72,9 +72,12 @@ class Player {
 public:
     Player(const std::string& name);
     void addToHand(const Card& card);
+    void addToInfo(int playerIndex, const Card card);
     const std::vector<Card>& getHand() const;
     const std::vector<std::vector<Card>>& getDeclaration() const;
     const int getDeclarationValue() const;
+    const std::vector<std::vector<Card>>& getInfo() const;
+    void updateInfo(int playerIndex, const Card card);
     const std::string getName() const;
     void removeFromHand(Card card);
     void sortHand();
@@ -88,6 +91,7 @@ private:
     std::string name;
     std::vector<Card> hand;
     std::vector<std::vector<Card>> declaration;
+    std::vector<std::vector<Card>> info;
     int declarationValue;
 };
 

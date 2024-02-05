@@ -56,6 +56,22 @@ const std::string Player::getName() const {
     return name;
 }
 
+const std::vector<std::vector<Card>>& Player::getInfo() const {
+    return info;
+}
+
+void Player::addToInfo(int playerIndex, const Card card) {
+    info[playerIndex].push_back(card);
+}
+
+void Player::updateInfo(int playerIndex, const Card card) {
+    auto it = find(info[playerIndex].begin(), info[playerIndex].end(), card);
+    if (it != info[playerIndex].end()) {
+        info[playerIndex].erase(it);
+    }
+}
+
+
 void Player::removeFromHand(Card card) {
     auto it = find(hand.begin(), hand.end(), card);
  
@@ -203,6 +219,10 @@ void BelaGame::chooseTrump() {
         std::cout << "Your hand: ";
         const std::vector<Card>& hand = currentPlayer.getHand();
         for (int j = 0; j < hand.size(); ++j) {
+            /*//Updating info about other players
+            for (int k = 0; k < 3; k++){
+                players[(firstPlayer + i) % 4].updateInfo(k, hand[j]);
+            }*/
             std::cout << valueMapReverse.at(hand[j].getValue()) << " of " << suitMapReverse.at(hand[j].getSuit()) << "    ";
         }
         std::cout << std::endl;
@@ -277,8 +297,28 @@ void BelaGame::playGame() {
     Card firstCard = Card(0, SPADES);
     int strongestPlayer = -1;
 
+    /*//Updating info about other players
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 3; j++) {
+            for (int k = 7; k <= 14; k++) {
+                players[i].addToInfo(j, Card(k, SPADES));
+                players[i].addToInfo(j, Card(k, HEARTS));
+                players[i].addToInfo(j, Card(k, DIAMONDS));
+                players[i].addToInfo(j, Card(k, CLUBS));
+            }
+        }
+    }*/
+
     while (round < 8) {
         if (currentPlayerIndex == firstPlayer) {
+            /*//Updating info about other players
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 3; j++){
+                    for (int k = 0; k < 4; k++) {
+                        players[currentPlayerIndex + i].updateInfo(j, roundCards[k]);
+                    }
+                }
+            }*/
             roundCards.clear();
             strongestCard = firstCard = Card(0, SPADES);
         }
