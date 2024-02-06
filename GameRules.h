@@ -1,4 +1,3 @@
-#pragma once
 #ifndef GAMERULES_H
 #define GAMERULES_H
 
@@ -12,9 +11,9 @@ std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card fir
 int countCardPoints(const std::vector<Card>& cards, Suit trump);
 
 void processSameSuitDeclaration(const std::vector<Card>& declaration, bool& found4Same, bool& foundDeclaration,
-    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer, int currentPlayer);
+                                    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer, int currentPlayer);
 
 void processDifferentSuitDeclaration(const std::vector<Card>& declaration, bool& found4Same, bool& foundDeclaration,
-    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer, int currentPlayer);
+                                    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer, int currentPlayer);
 
 #endif

@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "Prozor.h"
 
 enum Suit { SPADES, HEARTS, DIAMONDS, CLUBS };
 
@@ -49,20 +48,14 @@ static const std::map<int, int> valueDeclaration = {
 class Card {
 public:
     Card(int value, Suit suit);
-    Card(int n);
     int getValue() const;
     Suit getSuit() const;
 
-    bool operator==(const Card& other) const { return value == other.value && suit == other.suit; }
-
-    void Render(Prozor*, int n, bool t);
-    void setSprite(int n);
+    bool operator==(const Card& other) const {return value == other.value && suit == other.suit;}
 
 private:
     int value;
     Suit suit;
-    sf::Texture texture;
-    sf::Sprite card;
 };
 
 class Deck {
@@ -70,10 +63,9 @@ public:
     Deck();
     void shuffle();
     Card drawCard();
-
+    
 private:
     std::vector<Card> cards;
-    
 };
 
 class Player {
@@ -120,19 +112,14 @@ private:
     void removePlayedCardsFromInfo(std::vector<Card> roundCards);
     void initializeInfo();
     void playGame();
-    void renderiraj();
-    void sort();
 
     Deck deck;
-    std::vector<Player> players;
+    std::vector<Player> players;    
     int firstPlayer;
     int points[2];                  // 0 and 2 (index 0)    vs     1 and 3 (index 1)
     int roundsWon[2];
     int trumpTeam;
     Suit trump;
-    std::vector<int> allCards;
-    Prozor P;
-    bool trump_chosen;
 };
 
 #endif

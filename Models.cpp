@@ -5,104 +5,12 @@
 #include <utility>
 #include "Models.h"
 #include "GameRules.h"
-#include "Prozor.h"
 
 Card::Card(int value, Suit suit) : value(value), suit(suit) {}
-
-Card::Card(int n) {
-    value = (n % 8) + 7;
-    if (n / 8 == 0) suit = SPADES;
-    else if (n / 8 == 1) suit = HEARTS;
-    else if (n / 8 == 2) suit = DIAMONDS;
-    else suit = CLUBS;
-
-    texture.loadFromFile("karte.jpg");
-    card.setTexture(texture);
-    card.setTextureRect(sf::IntRect(0, 0, 100, 150));
-}
 
 int Card::getValue() const { return value; }
 
 Suit Card::getSuit() const { return suit; }
-
-void Card::setSprite(int n) {
-    int boja = n / 8;
-    int vrijednost = n % 8;
-
-    int pocetniX, pocetniY;
-
-    if (vrijednost < 2) {
-        pocetniX = 300 - 200 * vrijednost;
-
-        if (boja % 2) pocetniY = 600;
-        else pocetniY = 750;
-
-        if (boja > 1) pocetniX -= 100;
-    }
-    else if (vrijednost >= 2 && vrijednost < 5) {
-        pocetniX = 500 - 200 * (vrijednost - 2);
-
-        if (boja % 2) pocetniY = 300;
-        else pocetniY = 450;
-
-        if (boja > 1) pocetniX -= 100;
-    }
-
-    else {
-        pocetniX = 500 - 200 * (vrijednost - 5);
-
-        if (boja % 2) pocetniY = 0;
-        else pocetniY = 150;
-
-        if (boja > 1) pocetniX -= 100;
-    }
-
-
-
-    card.setTextureRect(sf::IntRect(pocetniX, pocetniY, 100, 150));
-}
-
-void Card::Render(Prozor* P, int n, bool trump) {
-    if (!trump && (n % 8 == 6 || n % 8 == 7)) {
-        card.setTextureRect(sf::IntRect(400, 600, 100, 150));
-    }
-    if ((n / 8) % 2 && n < 32) {
-        card.rotate(90.f);
-    }
-    if (n < 8) {
-        card.setPosition(350 + 100 * n, 750);
-    }
-    if (n >= 8 && n < 16)
-        card.setPosition(1400, 800 - 100 * (n - 8));
-
-    if (n >= 16 && n < 24) {
-        card.setPosition(350 + 100 * (n - 16), 0);
-    }
-
-    if (n >= 24 && n < 32) {
-        card.setPosition(200, 100 * (n - 23));
-    }
-
-    if (n == 32) {
-        card.setPosition(700, 550);
-    }
-
-    if (n == 33) {
-        card.rotate(90.f);
-        card.setPosition(1000, 450);
-    }
-
-    if (n == 34) {
-        card.setPosition(700, 250);
-    }
-
-    if (n == 35) {
-        card.rotate(90.f);
-        card.setPosition(600, 450);
-    }
-
-    P->crtaj(card);
-}
 
 Deck::Deck() {
     for (int i = 7; i <= 14; ++i) {
@@ -162,7 +70,7 @@ void Player::updateInfo(int playerIndex, Card card) {
 
 void Player::removeFromHand(Card card) {
     auto it = find(hand.begin(), hand.end(), card);
-
+ 
     if (it != hand.end()) {
         hand.erase(it);
     }
@@ -172,30 +80,29 @@ void Player::sortHand() {
     std::sort(hand.begin(), hand.end(), [](const Card& a, const Card& b) {
         if (a.getSuit() < b.getSuit()) {
             return true;
-        }
-        else if (a.getSuit() > b.getSuit()) {
+        } else if (a.getSuit() > b.getSuit()) {
             return false;
         }
 
         return a.getValue() < b.getValue();
-        });
+    });
 }
 
 std::vector<Card> Player::getAllCardOfSuit(Suit suit) {
     std::vector<Card> foundCards;
 
-    for (const auto& card : hand) {
-        if (card.getSuit() == suit) foundCards.push_back(card);
+    for(const auto& card : hand) {
+        if(card.getSuit() == suit) foundCards.push_back(card);
     }
 
     return foundCards;
 }
 
 void Player::findDeclarations() {
-    int iterationList[6] = { 12, 13, 10, 14, 9, 11 };
+    int iterationList[6] = {12, 13, 10, 14, 9, 11};
     std::vector<Card> foundDeclaration;
 
-    for (const int& value : iterationList) {
+    for (const int& value : iterationList) {  
         int count = std::count_if(hand.begin(), hand.end(), [value](const Card& card) { return card.getValue() == value; });
 
         if (count == 4) {
@@ -210,16 +117,15 @@ void Player::findDeclarations() {
         std::vector<Card> sameSuitCards = getAllCardOfSuit(static_cast<Suit>(suit));
         foundDeclaration.clear();
 
-        if (sameSuitCards.size() <= 2) continue;
+        if(sameSuitCards.size() <= 2) continue;
 
         for (int i = 0; i < sameSuitCards.size() - 1; i++) {
             if (sameSuitCards[i].getValue() == sameSuitCards[i + 1].getValue() - 1) {
                 foundDeclaration.push_back(sameSuitCards[i]);
-            }
-            else {
+            } else {
                 foundDeclaration.push_back(sameSuitCards[i]);
 
-                if (foundDeclaration.size() >= 3) {
+                if(foundDeclaration.size() >= 3) {
                     int score = (foundDeclaration.size() > 5) ? 5 : foundDeclaration.size();
                     declaration.push_back(foundDeclaration);
                     declarationValue += valueDeclaration.at(score);
@@ -230,7 +136,7 @@ void Player::findDeclarations() {
         }
 
         foundDeclaration.push_back(sameSuitCards.back());
-        if (foundDeclaration.size() >= 3) {
+        if(foundDeclaration.size() >= 3) {
             int score = (foundDeclaration.size() > 5) ? 5 : foundDeclaration.size();
             declaration.push_back(foundDeclaration);
             declarationValue += valueDeclaration.at(score);
@@ -239,10 +145,10 @@ void Player::findDeclarations() {
 }
 
 void Player::displayDeclarations() {
-    if (declaration.size() > 0) {
+    if(declaration.size() > 0) {
         std::cout << "Player " << name << " declared:" << std::endl;
-        for (auto i : declaration) {
-            for (auto j : i) {
+        for(auto i : declaration) {
+            for(auto j : i) {
                 std::cout << valueMapReverse.at(j.getValue()) << " of " << suitMapReverse.at(j.getSuit()) << "    ";
             }
             std::cout << std::endl;
@@ -258,9 +164,9 @@ void Player::clearDeclarations() {
 
 void Player::checkBela(Suit trump) {
     std::vector<Card> trumpCards = getAllCardOfSuit(trump);
-    if (trumpCards.size() > 0 && std::find(trumpCards.begin(), trumpCards.end(), Card(12, trump)) != trumpCards.end()
-        && std::find(trumpCards.begin(), trumpCards.end(), Card(13, trump)) != trumpCards.end()) {
-        std::vector<Card> Bela = { Card(12, trump), Card(13, trump) };
+    if(trumpCards.size() > 0 && std::find(trumpCards.begin(), trumpCards.end(), Card(12, trump)) != trumpCards.end() 
+                             && std::find(trumpCards.begin(), trumpCards.end(), Card(13, trump)) != trumpCards.end()) {
+        std::vector<Card> Bela = {Card(12, trump), Card(13, trump)};
         declarationValue += 20;
         declaration.push_back(Bela);
     }
@@ -274,17 +180,17 @@ void Player::initializeInfo() {
         }
     }
 
-    for (int i = 0; i < 3; i++) info.push_back(allCards);
+    for(int i = 0; i < 3; i++) info.push_back(allCards);
 
     for (int j = 0; j < hand.size(); j++) {
-        for (int k = 0; k < 3; k++) {
+        for (int k = 0; k < 3; k++){
             updateInfo(k, hand[j]);
         }
     }
 }
 
 BelaGame::BelaGame(const std::string& player1, const std::string& player2, const std::string& player3, const std::string& player4, const int firstPlayer)
-    : deck(), players{ Player(player1), Player(player2), Player(player3), Player(player4) }, firstPlayer(firstPlayer), points{ 0, 0 }, roundsWon{ 0, 0 }, allCards(36, 100), trump_chosen(false) {}
+    :  deck(), players{Player(player1), Player(player2), Player(player3), Player(player4)}, firstPlayer(firstPlayer), points{0, 0}, roundsWon{0, 0} {}
 
 const Player& BelaGame::getPlayer(int index) const {
     return players[index];
@@ -305,30 +211,23 @@ void BelaGame::startGame() {
 
 void BelaGame::dealCards() {
     for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 4; j++) {
-            Card C = deck.drawCard();
-            players[j].addToHand(C);
-            if (C.getSuit() == SPADES) allCards[j * 8 + i] = C.getValue() - 7;
-            if (C.getSuit() == HEARTS) allCards[j * 8 + i] = C.getValue() + 1;
-            if (C.getSuit() == DIAMONDS) allCards[j * 8 + i] = C.getValue() + 9;
-            if (C.getSuit() == CLUBS) allCards[j * 8 + i] = C.getValue() + 17;
+        for(int j = 0; j < 4; j++) {
+            players[j].addToHand(deck.drawCard());
         }
     }
 }
 
 void BelaGame::sortHands() {
-    for (int i = 0; i < 4; i++) {
+    for(int i = 0; i < 4; i++) {
         players[i].sortHand();
     }
-    sort();
 }
 
 void BelaGame::chooseTrump() {
     std::string inputTrump;
-    std::vector<std::string> validInput = { "PASS", "SPADES", "HEARTS", "DIAMONDS", "CLUBS" };
+    std::vector<std::string> validInput = {"PASS", "SPADES", "HEARTS", "DIAMONDS", "CLUBS"};
 
-    for (int i = 0; i < 4; i++) {
-        renderiraj();
+    for(int i = 0 ; i < 4; i++) {
         Player currentPlayer = players[(firstPlayer + i) % 4];
         std::cout << "Player " << currentPlayer.getName() << "'s turn:" << std::endl;
         std::cout << "Your hand: ";
@@ -353,8 +252,6 @@ void BelaGame::chooseTrump() {
             else {
                 trump = suitMap.at(inputTrump);
                 trumpTeam = (firstPlayer + i) % 2;
-                trump_chosen = true;
-                sort();
                 return;
             }
         }
@@ -366,12 +263,11 @@ void BelaGame::clearDeclarations(int playerIndex) {
 }
 
 void BelaGame::processDeclarations(int currentPlayer, bool& found4Same, bool& foundDeclaration,
-    std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer) {
+                            std::pair<int, int>& strongestDeclaration, int& strongestIndexPlayer) {
     for (const auto& declaration : players[currentPlayer].getDeclaration()) {
         if (declaration[0].getSuit() == declaration[1].getSuit()) {
             processSameSuitDeclaration(declaration, found4Same, foundDeclaration, strongestDeclaration, strongestIndexPlayer, currentPlayer);
-        }
-        else {
+        } else {
             processDifferentSuitDeclaration(declaration, found4Same, foundDeclaration, strongestDeclaration, strongestIndexPlayer, currentPlayer);
         }
     }
@@ -379,11 +275,11 @@ void BelaGame::processDeclarations(int currentPlayer, bool& found4Same, bool& fo
 
 void BelaGame::declarations() {
     int strongestIndexPlayer;
-    std::pair<int, int> strongestDeclaration = { 0, 0 };
+    std::pair<int, int> strongestDeclaration = {0, 0};
     bool found4Same = false;
     bool foundDeclaration = false;
 
-    for (int i = 0; i < 4; i++) players[i].findDeclarations();
+    for(int i = 0; i < 4; i++) players[i].findDeclarations();
 
     for (int i = 0; i < 4; i++) {
         int currentPlayer = (firstPlayer + i) % 4;
@@ -395,9 +291,9 @@ void BelaGame::declarations() {
         clearDeclarations((strongestIndexPlayer + 3) % 4);
     }
 
-    for (int i = 0; i < 4; i++) players[i].checkBela(trump);
+    for(int i = 0; i < 4; i++) players[i].checkBela(trump);
 
-    for (int i = 0; i < 4; i++) {
+    for(int i = 0; i < 4; i++){
         players[i].displayDeclarations();
         points[i % 2] += players[i].getDeclarationValue();
     }
@@ -405,7 +301,7 @@ void BelaGame::declarations() {
 
 void BelaGame::removePlayedCardsFromInfo(std::vector<Card> roundCards) {
     for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < 3; j++){
             for (int k = 0; k < 4; k++) {
                 players[i].updateInfo(j, roundCards[k]);
             }
@@ -448,10 +344,9 @@ void BelaGame::playGame() {
         // std::cout << "\n----- MGUCE IGRATI -----\n";
         // for (Card c : validHand) std::cout << valueMapReverse.at(c.getValue()) << " of " << suitMapReverse.at(c.getSuit()) << "    ";
         // std::cout << std::endl;
-
+        
         int chosenCardIndex;
         while (true) {
-            renderiraj();
             std::cout << "Enter the position of the card to play (0-7): ";
             std::cin >> chosenCardIndex;
 
@@ -464,11 +359,6 @@ void BelaGame::playGame() {
                 std::cout << "This card cannot be played according to the rules." << std::endl;
                 continue;
             }
-
-            int temp = allCards[currentPlayerIndex * 8 + chosenCardIndex];
-            allCards[currentPlayerIndex * 8 + chosenCardIndex] = allCards[32 + currentPlayerIndex];
-            allCards[32 + currentPlayerIndex] = temp;
-            sort();
 
             break;
         }
@@ -495,9 +385,6 @@ void BelaGame::playGame() {
 
         // End of the round
         if (currentPlayerIndex == firstPlayer) {
-            for (int i = 32; i < 36; i++) {
-                allCards[i] = 100;
-            }
             // Add round points to team winning the round
             // std::cout << "------ TEST end of the round ------\n";
             // for(const Card& card : roundCards) std::cout << valueMapReverse.at(card.getValue()) << " of " << suitMapReverse.at(card.getSuit()) << std::endl;
@@ -513,23 +400,23 @@ void BelaGame::playGame() {
             currentPlayerIndex = firstPlayer;
 
             round++;
-            if (round < 8) std::cout << "Round " << round + 1 << std::endl;
+            if(round < 8) std::cout << "Round " << round + 1 << std::endl;
         }
     }
 
-    if (points[trumpTeam] <= points[(trumpTeam + 1) % 2]) {
+    if(points[trumpTeam] <= points[(trumpTeam + 1) % 2]) {
         std::cout << "The team that called trump fell and lost all of the points" << std::endl;
         points[(trumpTeam + 1) % 2] += points[trumpTeam % 2];
         points[trumpTeam % 2] = 0;
     }
 
-    if (roundsWon[0] == 8) {
+    if(roundsWon[0] == 8) {
         std::cout << "Team 0 won all 8 rounds" << std::endl;
         points[0] += points[1] + 90;
         points[1] = 0;
     }
 
-    if (roundsWon[1] == 8) {
+    if(roundsWon[1] == 8) {
         std::cout << "Team 1 won all 8 rounds" << std::endl;
         points[1] += points[0] + 90;
         points[0] = 0;
@@ -537,25 +424,4 @@ void BelaGame::playGame() {
 
     // End of the game
     std::cout << "Game Over!" << std::endl;
-}
-
-void BelaGame::renderiraj() {
-
-    P.ocisti();
-
-
-    for (int i = 0; i < 36; i++) {
-        if (allCards[i] == 100) continue;
-        Card C(allCards[i]);
-        C.setSprite(allCards[i]);
-        C.Render(&P, i, trump_chosen);
-    }
-    P.prikazi();
-}
-
-void BelaGame::sort() {
-    int num = 8;
-    if (!trump_chosen) num = 6;
-    for (int i = 0; i < 4; i++)
-        std::sort(allCards.begin() + i * 8, allCards.begin() + i * 8 + num);
 }
