@@ -459,7 +459,7 @@ void BelaGame::playGame() {
                     if (std::find(validHand.begin(), validHand.end(), hand[i]) == validHand.end())
                         continue;
                     makeMove(hand[i]);
-                    int utility = minimax(*this, DEPTH);
+                    int utility = minimax(*this, DEPTH, INT_MIN, INT_MAX);
                     if (utility >= maxUtility) {
                         maxUtility = utility;
                         chosenCardIndex = i;
@@ -473,7 +473,7 @@ void BelaGame::playGame() {
                     if (std::find(validHand.begin(), validHand.end(), hand[i]) == validHand.end())
                         continue;
                     makeMove(hand[i]);
-                    int utility = minimax(*this, DEPTH);
+                    int utility = minimax(*this, DEPTH, INT_MIN, INT_MAX);
                     if (utility >= minUtility) {
                         minUtility = utility;
                         chosenCardIndex = i;
@@ -600,37 +600,39 @@ int evaluate(BelaGame& gameState) {
     return evaluation;
 }
 
-int minimax(BelaGame gameState, int depth) {
+int minimax(BelaGame gameState, int depth, int alpha, int beta) {
     bool maximizingPlayer = gameState.currentPlayerIndex % 2;
-    if (gameState.roundCards.size() == 4) {
+    if (gameState.roundCards.size() == 4 || depth == 0) {
         return evaluate(gameState);
     }
     if (maximizingPlayer) {
         int maxUtility = INT_MIN;
         std::vector<Card> moves = validCardsToPlay(
-            // (gameState.players[aiPlayer].getInfo()).at(gameState.currentPlayerIndex),
             gameState.deck.getCards(),
             gameState.firstCard, gameState.strongestCard,
             gameState.trump);
         for (Card card : moves) {
             gameState.makeMove(card);
-            int utility = minimax(gameState, depth - 1);
+            int utility = minimax(gameState, depth - 1, alpha, beta);
             maxUtility = std::max(maxUtility, utility);
             gameState.undoMove();
+            alpha = std::max(alpha, utility);
+            if (beta <= alpha) break; // Beta cutoff
         }
         return maxUtility;
     } else {
         int minUtility = INT_MAX;
         std::vector<Card> moves = validCardsToPlay(
-            // (gameState.players[aiPlayer].getInfo()).at(gameState.currentPlayerIndex),
             gameState.deck.getCards(),
             gameState.firstCard, gameState.strongestCard,
             gameState.trump);
         for (Card card : moves) {
             gameState.makeMove(card);
-            int utility = minimax(gameState, depth - 1);
+            int utility = minimax(gameState, depth - 1, alpha, beta);
             minUtility = std::min(minUtility, utility);
             gameState.undoMove();
+            beta = std::min(beta, utility);
+            if (beta <= alpha) break; // Alpha cutoff
         }
         return minUtility;
     }
