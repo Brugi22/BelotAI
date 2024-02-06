@@ -1,5 +1,7 @@
 #ifndef MODELS_H
 #define MODELS_H
+#define aiPlayer 1
+#define DEPTH 5
 
 #include <vector>
 #include <string>
@@ -50,7 +52,7 @@ public:
     Card(int value, Suit suit);
     int getValue() const;
     Suit getSuit() const;
-
+    Card() : value(0), suit(SPADES) {}
     bool operator==(const Card& other) const {return value == other.value && suit == other.suit;}
 
 private:
@@ -63,7 +65,7 @@ public:
     Deck();
     void shuffle();
     Card drawCard();
-    
+    std::vector<Card> getCards() {return cards;}
 private:
     std::vector<Card> cards;
 };
@@ -97,11 +99,15 @@ private:
 
 class BelaGame {
 public:
+    friend int minimax(BelaGame, int);
+    friend int evaluate(BelaGame&);
     BelaGame(const std::string& player1, const std::string& player2, const std::string& player3, const std::string& player4, const int firstPlayer);
     const Player& getPlayer(int index) const;
     const std::vector<Player>& getAllPlayers() const;
     void startGame();
-
+    // Minimax
+    void makeMove(Card);
+    void undoMove();
 private:
     void dealCards();
     void sortHands();
@@ -120,6 +126,15 @@ private:
     int roundsWon[2];
     int trumpTeam;
     Suit trump;
+    // izmjesteno
+    int currentPlayerIndex;
+    int round;
+    Card strongestCard;
+    Card firstCard;
+    std::vector<Card> roundCards;
 };
+
+int minimax(BelaGame, int);
+int evaluate(BelaGame&);
 
 #endif
