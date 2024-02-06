@@ -99,7 +99,7 @@ private:
 
 class BelaGame {
 public:
-    friend int minimax(BelaGame, int);
+    friend int minimax(BelaGame, int, int, int);
     friend int evaluate(BelaGame&);
     BelaGame(const std::string& player1, const std::string& player2, const std::string& player3, const std::string& player4, const int firstPlayer);
     const Player& getPlayer(int index) const;
@@ -134,7 +134,7 @@ private:
     std::vector<Card> roundCards;
 };
 
-int minimax(BelaGame, int);
+int minimax(BelaGame, int, int, int);
 int evaluate(BelaGame&);
 
 #endif
