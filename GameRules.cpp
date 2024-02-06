@@ -111,3 +111,13 @@ void processDifferentSuitDeclaration(const std::vector<Card>& declaration, bool&
         }
     }
 }
+
+int getStrongestPositionedCard(const std::vector<Card>& cards, Suit trump) {
+    std::vector<Card> sortCards = cards;
+    std::sort(sortCards.begin(), sortCards.end(), [trump](const Card& card1, const Card& card2) {
+        return compareCards(card1, card2, trump);
+    });
+    auto it = std::find(cards.begin(), cards.end(), sortCards[0]);
+    int index = std::distance(cards.begin(), it);
+    return index % 2;
+}
