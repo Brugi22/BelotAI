@@ -33,7 +33,8 @@ bool compareCards(const Card& card1, const Card& card2, Suit trump) {
     return index1 > index2;
 }
 
-std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card firstCard = Card(0, SPADES), Card strongestCard = Card(0, SPADES), Suit trump = SPADES) {
+std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card firstCard = Card(0, SPADES),
+                                    Card strongestCard = Card(0, SPADES), Suit trump = SPADES) {
     if (firstCard.getValue() == 0) return playerHand;
 
     std::vector<Card> validCards;
@@ -44,7 +45,6 @@ std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card fir
     }
 
     if (validCards.size() != 0) {
-
         for (const auto& card : validCards) if (compareCards(card, strongestCard, trump)) validStrongerCards.push_back(card);
 
         if (validStrongerCards.size() != 0) return validStrongerCards;
@@ -56,13 +56,11 @@ std::vector<Card> validCardsToPlay(const std::vector<Card>& playerHand, Card fir
     }
 
     if (validCards.size() != 0) {
-
         for (const auto& card : validCards) if (compareCards(card, strongestCard, trump)) validStrongerCards.push_back(card);
 
         if (validStrongerCards.size() != 0) return validStrongerCards;
         return validCards;
     }
-
     return playerHand;
 }
 

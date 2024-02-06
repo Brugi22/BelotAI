@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "Prozor.h"
 
 enum Suit { SPADES, HEARTS, DIAMONDS, CLUBS };
 
@@ -73,7 +72,6 @@ public:
 
 private:
     std::vector<Card> cards;
-    
 };
 
 class Player {

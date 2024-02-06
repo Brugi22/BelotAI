@@ -13,7 +13,7 @@ Card::Card(int n) {
     value = (n % 8) + 7;
     if (n / 8 == 0) suit = SPADES;
     else if (n / 8 == 1) suit = HEARTS;
-    else if (n / 8 == 2) suit = DIAMONDS;
+    else if (n / 8 == 2) suit = DIAMONDS
     else suit = CLUBS;
 
     texture.loadFromFile("karte.jpg");
@@ -559,3 +559,4 @@ void BelaGame::sort() {
     for (int i = 0; i < 4; i++)
         std::sort(allCards.begin() + i * 8, allCards.begin() + i * 8 + num);
 }
+
