@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <random>
 #include <utility>
+#include <limits.h>
 #include "Models.h"
 #include "GameRules.h"
 #include "Prozor.h"
@@ -418,11 +419,8 @@ void BelaGame::initializeInfo() {
 }
 
 void BelaGame::playGame() {
-    int currentPlayerIndex = firstPlayer;
-    int round = 0;
-    std::vector<Card> roundCards;
-    Card strongestCard = Card(0, SPADES);
-    Card firstCard = Card(0, SPADES);
+    currentPlayerIndex = firstPlayer;
+    round = 0;
     int strongestPlayer = -1;
 
     while (round < 8) {
@@ -450,7 +448,44 @@ void BelaGame::playGame() {
         // std::cout << std::endl;
 
         int chosenCardIndex;
-        while (true) {
+
+
+
+        // -------- AI ----------
+        if (currentPlayerIndex == aiPlayer) {
+            if (aiPlayer % 2) {     // MAXIMIZING
+                int maxUtility = INT_MIN;
+                for (int i = 0; i < hand.size(); i++) {
+                    if (std::find(validHand.begin(), validHand.end(), hand[i]) == validHand.end())
+                        continue;
+                    makeMove(hand[i]);
+                    int utility = minimax(*this, DEPTH);
+                    if (utility >= maxUtility) {
+                        maxUtility = utility;
+                        chosenCardIndex = i;
+                    }
+                    undoMove();
+                }
+            }
+            if (aiPlayer % 2) {     // MINIMIZING
+                int minUtility = INT_MAX;
+                for (int i = 0; i < hand.size(); i++) {
+                    if (std::find(validHand.begin(), validHand.end(), hand[i]) == validHand.end())
+                        continue;
+                    makeMove(hand[i]);
+                    int utility = minimax(*this, DEPTH);
+                    if (utility >= minUtility) {
+                        minUtility = utility;
+                        chosenCardIndex = i;
+                    }
+                    undoMove();
+                }
+            }
+        }
+
+
+        // -------- HUMAN ----------
+        else while (true) {
             renderiraj();
             std::cout << "Enter the position of the card to play (0-7): ";
             std::cin >> chosenCardIndex;
@@ -472,6 +507,8 @@ void BelaGame::playGame() {
 
             break;
         }
+
+
 
         // Play the chosen card
         Card chosenCard = hand[chosenCardIndex];
@@ -537,6 +574,66 @@ void BelaGame::playGame() {
 
     // End of the game
     std::cout << "Game Over!" << std::endl;
+}
+
+
+void BelaGame::makeMove(Card card) {
+    roundCards.push_back(card);
+    currentPlayerIndex++;
+}
+
+void BelaGame::undoMove() {
+    roundCards.pop_back();
+    --currentPlayerIndex;
+}
+
+int evaluate(BelaGame& gameState) {
+    // Bodovi 1 plus
+    // Bodovi 0 minus
+    int evaluation = 0;
+    evaluation += gameState.points[1];
+    evaluation -= gameState.points[0];
+    // Karte u trenutnom stihu + ili - (ovisi kome ide stih)
+    if ((getStrongestPositionedCard(gameState.roundCards, gameState.trump) + gameState.firstPlayer) % 2)
+        evaluation += countCardPoints(gameState.roundCards, gameState.trump);
+    else evaluation -= countCardPoints(gameState.roundCards, gameState.trump);
+    return evaluation;
+}
+
+int minimax(BelaGame gameState, int depth) {
+    bool maximizingPlayer = gameState.currentPlayerIndex % 2;
+    if (gameState.roundCards.size() == 4) {
+        return evaluate(gameState);
+    }
+    if (maximizingPlayer) {
+        int maxUtility = INT_MIN;
+        std::vector<Card> moves = validCardsToPlay(
+            // (gameState.players[aiPlayer].getInfo()).at(gameState.currentPlayerIndex),
+            gameState.deck.getCards(),
+            gameState.firstCard, gameState.strongestCard,
+            gameState.trump);
+        for (Card card : moves) {
+            gameState.makeMove(card);
+            int utility = minimax(gameState, depth - 1);
+            maxUtility = std::max(maxUtility, utility);
+            gameState.undoMove();
+        }
+        return maxUtility;
+    } else {
+        int minUtility = INT_MAX;
+        std::vector<Card> moves = validCardsToPlay(
+            // (gameState.players[aiPlayer].getInfo()).at(gameState.currentPlayerIndex),
+            gameState.deck.getCards(),
+            gameState.firstCard, gameState.strongestCard,
+            gameState.trump);
+        for (Card card : moves) {
+            gameState.makeMove(card);
+            int utility = minimax(gameState, depth - 1);
+            minUtility = std::min(minUtility, utility);
+            gameState.undoMove();
+        }
+        return minUtility;
+    }
 }
 
 void BelaGame::renderiraj() {
